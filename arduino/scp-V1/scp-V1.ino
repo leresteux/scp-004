@@ -1,6 +1,7 @@
 //https://www.tutorialspoint.com/arduino/arduino_multi_dimensional_arrays.htm
 #include <Servo.h>
 
+
 const byte startAngle = 90;
 const byte nbreServo = 6;
 const byte posMini = 10;
@@ -8,20 +9,35 @@ const byte posMax = 170;
 const byte nbrededegreMax = 20;
 const byte nbredevibrationMax = 20;
 
+const byte redpin = 9;
+const byte bluepin = 10;
+const byte greenpin = 11;
+const byte whitePower = 200;
+const byte maxPower = 240;
+const byte miniPower = 100;
+
+
 bool directionAngle[nbreServo];
 int pos[nbreServo];
-byte nbrededegre[nbreServo] = {1,1,1,1,1,1};
+byte nbrededegre[nbreServo] = {1, 1, 1, 1, 1, 1};
 byte colere[nbreServo] = { };
 Servo servo[nbreServo];
 
 void setup() {
+  <<< <<< < HEAD
   servo[0].attach(3);
   servo[1].attach(5);
   servo[2].attach(6);
-  servo[3].attach(9);
-  servo[4].attach(10);
-  servo[5].attach(11);
 
+  pinMode(redpin, OUTPUT);
+  pinMode(bluepin, OUTPUT);
+  pinMode(greenpin, OUTPUT);
+
+  /*
+    servo[3].attach(9);
+    servo[4].attach(10);
+    servo[5].attach(11);
+  */
   Serial.begin(9600);
 
   for (byte i = 0; i < nbreServo; i++) {
@@ -32,11 +48,13 @@ void setup() {
 }
 
 void loop() {
-  if (random(10)==0) {
+
+  ledRVB();
+  if (random(10) == 0) {
     colere[random(nbreServo)] = 1;
   }
   for (byte i = 0; i < nbreServo; i++) {
- 
+
     moveMode(i);
     safelimites(i);
     servo[i].write(pos[i]);
@@ -86,4 +104,19 @@ void safelimites(byte whatServoInfo) {
   if (nbrededegre[whatServoInfo] < 1) {
     nbrededegre[whatServoInfo] = 1;
   }
+
+}
+
+void ledRVB() {
+
+  whitePower = whitePower + random(-1, 3);
+  if (whitePower < miniPower) {
+    whitePower = miniPower;
+  }
+  if (whitePower > maxPower) {
+    whitePower = maxPower;
+  }
+  analogWrite(redpin, whitePower);
+  analogWrite(bluepin, whitePower);
+  analogWrite(greenpin, whitePower);
 }
