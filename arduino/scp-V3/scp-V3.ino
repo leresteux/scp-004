@@ -6,7 +6,7 @@ const byte nbreServo = 1;
 const byte miniPosLimite = 10;
 const byte maxPosLimite = 170;
 
-const byte RGBpins[3] = {5, 6, 11};
+const byte RGBpins[3] = {11, 5, 6};
 const byte maxPowerLimite = 220;
 const byte miniPowerLimite = 20;
 
@@ -92,12 +92,14 @@ void ledRVB() {
         lightVariationMode();
         analogWrite(RGBpins[i], lightVariation );
       }
+      analogWrite(RGBpins[2], 0 );
       break;
     case 2:
-//    Rpins
+      //    Rpins
       lightVariationMode();
-      analogWrite(RGBpins[2], lightVariation );
-
+      analogWrite(RGBpins[1], lightVariation );
+      analogWrite(RGBpins[0], random(0,20) );
+      analogWrite(RGBpins[2], 0 );
       break;
     default:
       //RGBpins actives
@@ -111,8 +113,8 @@ void ledRVB() {
 
 void lightVariationMode() {
   lightVariation = random(
-                         (LEDPowerLimitesTemp[0] + random((0 - colorVariation / 2), colorVariation)),  //minimun dans la variation de cooleur,
-                         (LEDPowerLimitesTemp[1] + random((0 - colorVariation / 2), colorVariation))); //maxi
+                     (LEDPowerLimitesTemp[0] + random((0 - colorVariation / 2), colorVariation)),  //minimun dans la variation de cooleur,
+                     (LEDPowerLimitesTemp[1] + random((0 - colorVariation / 2), colorVariation))); //maxi
 }
 
 void tempete() {
