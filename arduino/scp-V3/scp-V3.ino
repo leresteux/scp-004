@@ -14,6 +14,7 @@ const byte miniPowerLimite = 20;
 int whitePower = 0;
 int whitePowerLimitesTemp[2];
 int colorVariation;
+int lightVariation;
 
 int posLimitesTemp[2];
 
@@ -95,7 +96,7 @@ void ledRVB() {
       }
       break;
     case 2:
-    Rpins
+//    Rpins
       lightVariationMode();
       analogWrite(RGBpins[2], lightVariation );
 
@@ -111,7 +112,7 @@ void ledRVB() {
 }
 
 void lightVariationMode() {
-  int lightVariation = random(
+  lightVariation = random(
                          (whitePowerLimitesTemp[0] + random((0 - colorVariation / 2), colorVariation)),  //minimun dans la variation de cooleur,
                          (whitePowerLimitesTemp[1] + random((0 - colorVariation / 2), colorVariation))); //maxi
 }
@@ -147,7 +148,7 @@ void tempete() {
     case 1:
       whitePowerLimitesTemp[0] = 100;
       whitePowerLimitesTemp[1] = 150;
-      posLimitesTemp[0] = startPos - 4 0;
+      posLimitesTemp[0] = startPos - 40;
       posLimitesTemp[1] = startPos + 40;
       nbreDegreVariation = 3;
       colorVariation = 50;
