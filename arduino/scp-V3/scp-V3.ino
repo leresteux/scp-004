@@ -92,13 +92,13 @@ void ledRVB() {
         lightVariationMode();
         analogWrite(RGBpins[i], lightVariation );
       }
-      analogWrite(RGBpins[2], 0 );
+      analogWrite(RGBpins[2], random(0,20) );
       break;
     case 2:
       //    Rpins
       lightVariationMode();
       analogWrite(RGBpins[1], lightVariation );
-      analogWrite(RGBpins[0], random(0,20) );
+      analogWrite(RGBpins[0], random(0,15) );
       analogWrite(RGBpins[2], 0 );
       break;
     default:
@@ -121,9 +121,9 @@ void tempete() {
 
   switch (etatNuage) {
     case 1:
-      if (chronoTempete.hasPassed(1000 * random(3, 4))) {
+      if (chronoTempete.hasPassed(1000 * random(2, 4))) {
         chronoTempete.restart();
-        if (random(10)) {
+        if (random(10)==0) {
           etatNuage = 2;
         } else {
           etatNuage = 0;
