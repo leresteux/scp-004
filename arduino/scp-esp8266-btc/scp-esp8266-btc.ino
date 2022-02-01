@@ -108,23 +108,22 @@ void loop() {
   String priceString = jsonAnswer.substring(rateIndex + 12, rateIndex + 18);
   priceString.trim();
   price = priceString.toFloat();
-
-  // Print price
-   price = price / 100;
   Serial.println();
   Serial.println("Bitcoin price: ");
-  Serial.print(price);     
-    Serial.println("K $ ");
-  Serial.println("Bitcoin oldprice: ");
+  Serial.print(price);
+  Serial.print("S VS ");
   Serial.print(oldprice);
-    Serial.println("K $ ");
+  Serial.println("S 10sec before");
+  // Print price
 
-  if (price <oldprice) {
-    Serial.println(":( <( OH NO!)");
-  } else {
-    Serial.println(":) <(EH!EH!) ");
-  }
+  if (price < oldprice) {
+    Serial.println(":-( <( OH NO!)");
+  } else if  (price > oldprice) {
+      Serial.println(":-) <( EH! EH!) ");
+    } else {
+      Serial.println(":-o <(nothink to say) ");
+    }
   oldprice = price;
   delay(10000);
-  
+
 }
