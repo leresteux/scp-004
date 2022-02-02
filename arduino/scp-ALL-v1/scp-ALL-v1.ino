@@ -1,8 +1,8 @@
 // basé sur crypto-ticker pour la programmation du crypto-ticker https://github.com/openhardwarelabs/bitcoin-ticker
-
+//info PWN pins esp8266 1 to 8 and 12
 // Libraries SP for ESp8266
 #include <ESP8266WiFi.h>
-#include <ArduinoJson.h>
+#include <ArduinoJson.h>// version 5
 #include <Wire.h>
 //for ultraS
 #include <HCSR04.h>// https://github.com/Martinsos/arduino-lib-hc-sr04
@@ -20,17 +20,19 @@ const char* host = "api.coindesk.com";
 int price, oldprice;
 
 /////////const & var for UltraS.
-const byte triggerPin = 13;
-const byte echoPin = 12;
+const byte triggerPin = 13; //<to change
+const byte echoPin = 12; //<to change
 UltraSonicDistanceSensor distanceSensor(triggerPin, echoPin);
 unsigned int distance;
 
 /////////const & var for servo RGBled and others.
 // servo
+
 const byte startPos = 90;
 const byte nbreServo = 1;
 const byte miniPosLimite = 10;
 const byte maxPosLimite = 170;
+const byte servoPins[] = {3}; //<to change
 
 int posLimitesTemp[2];
 bool directionAngle[nbreServo];
@@ -43,7 +45,7 @@ int LEDPowerLimitesTemp[2];
 int colorVariation;
 int lightVariation;
 
-const byte RGBpins[3] = {11, 5, 6};
+const byte RGBpins[3] = {11, 5, 6}; //<to change
 const byte maxPowerLimite = 220;
 const byte miniPowerLimite = 20;
 
@@ -75,11 +77,16 @@ void setup() {
   Serial.println("WiFi connected");
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP());
+  
   ////UltraS.
   float distance = distanceSensor.measureDistanceCm();
   Serial.println(distance);
+  
   ////servo
-  servo[0].attach(3);
+  for (byte i=0; i<nbreServo;i++){
+  servo[i].attach(servoPins[i]);
+  }
+  ////RGB
   for (byte i = 0; i < 3; i++) {
     pinMode(RGBpins[i], OUTPUT);
   }
