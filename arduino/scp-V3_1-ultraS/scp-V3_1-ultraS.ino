@@ -164,13 +164,12 @@ void tempete() {
 void tempeteWithUltraS() {
 
 
-
-  distance = distanceSensor.measureDistanceCm();
-
+    distance = distanceSensor.measureDistanceCm();
+  
 
   if (distance < 15) {
     etatNuage = 2;
-  } else if (distance < 30) {
+  } else if (distance < 40) {
     etatNuage = 1;
   } else {
     etatNuage = 0;
@@ -200,8 +199,8 @@ void etatNuageUpDate() {
       LEDPowerLimitesTemp[1] = miniPowerLimite + 2;
       posLimitesTemp[0] = startPos - 50;
       posLimitesTemp[1] = startPos + 50;
-      float R = random(2,4);
-      nbreDegreVariation = R/10;
+      float R = random(2, 4);
+      nbreDegreVariation = R / 10;
       colorVariation = 0;
       break;
   }
