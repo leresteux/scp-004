@@ -2,7 +2,7 @@
 //info PWN pins esp8266 1 to 8 and 12
 // Libraries SP for ESp8266
 #include <ESP8266WiFi.h>
-#include <ArduinoJson.h>// version 5
+#include <ArduinoJson.h>
 #include <Wire.h>
 //for ultraS
 #include <HCSR04.h>// https://github.com/Martinsos/arduino-lib-hc-sr04
@@ -12,12 +12,12 @@
 
 /////////const & var for crypto ticker
 // WiFi settings
-const char* ssid     = "juju";
-const char* password = "superjuju";
+
+const char* ssid     = "RED";
+const char* password = "lemot2passeestlemot2passe";
+
 // API server
 const char* host = "api.coindesk.com";
-//price
-int price, oldprice;
 
 /////////const & var for UltraS.
 const byte triggerPin = 13; //<to change
@@ -32,7 +32,7 @@ const byte startPos = 90;
 const byte nbreServo = 1;
 const byte miniPosLimite = 10;
 const byte maxPosLimite = 170;
-const byte servoPins[] = {3}; //<to change
+const byte servoPins[nbreServo] = {4}; //<to change
 
 int posLimitesTemp[2];
 bool directionAngle[nbreServo];
@@ -45,12 +45,15 @@ int LEDPowerLimitesTemp[2];
 int colorVariation;
 int lightVariation;
 
-const byte RGBpins[3] = {11, 5, 6}; //<to change
+const byte RGBpins[3] = {12, 14, 15}; 
 const byte maxPowerLimite = 220;
 const byte miniPowerLimite = 20;
 
 byte etatNuage = 0;
 
+//ZONE TEST
+const byte Rpins = 11;
+//FIN
 Servo servo[nbreServo];
 Chrono chronoTempete;
 
@@ -59,7 +62,26 @@ void setup() {
   // Serial
   Serial.begin(115200);
   delay(10);
-  ////wifi
+
+  //fait buggé
+  for (byte i = 0; i < nbreServo; i++) {
+
+    servo[i].attach(servoPins[i]);
+    delay(10);
+    pos[i] = startPos;
+    delay(10);
+    servo[i].write(90);
+    delay(10);
+  }
+
+
+  ////RGB
+  for (byte i = 0; i < 3; i++) {
+    pinMode(RGBpins[i], OUTPUT);
+  }
+
+  delay(1000);
+
   // We start by connecting to a WiFi network
   Serial.println();
   Serial.println();
@@ -67,6 +89,7 @@ void setup() {
   Serial.println(ssid);
 
   WiFi.begin(ssid, password);
+  delay (10);
 
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
@@ -77,43 +100,13 @@ void setup() {
   Serial.println("WiFi connected");
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP());
-  
-  ////UltraS.
-  float distance = distanceSensor.measureDistanceCm();
-  Serial.println(distance);
-  
-  ////servo
-  for (byte i=0; i<nbreServo;i++){
-  servo[i].attach(servoPins[i]);
-  }
-  ////RGB
-  for (byte i = 0; i < 3; i++) {
-    pinMode(RGBpins[i], OUTPUT);
-  }
-  for (byte i = 0; i < nbreServo; i++) {
-    pos[i] = startPos;
-    servo[i].write(90);
-  }
-}
 
+  delay(10);
+
+}
 void loop() {
 
-  cryptoTicker();
-  delay(1);
-  tempete();
-  delay(1);
-  tempeteWithUltraS();
-  delay(1);
-  etatNuageUpDate();
-  delay(1);
-  ledRVB();
-  delay(1);
-  moveMode(0);
-  delay(1);
-
-}
-
-void cryptoTicker() { // Connect to API
+  // Connect to API
   Serial.print("connecting to ");
   Serial.println(host);
 
@@ -175,27 +168,32 @@ void cryptoTicker() { // Connect to API
   int rateIndex = jsonAnswer.indexOf("rate_float");
   String priceString = jsonAnswer.substring(rateIndex + 12, rateIndex + 18);
   priceString.trim();
-  price = priceString.toFloat();
+  float price = priceString.toFloat();
+
+  // Print price
   Serial.println();
   Serial.println("Bitcoin price: ");
-  Serial.print(price);
-  Serial.print("S VS ");
-  Serial.print(oldprice);
-  Serial.println("S 10sec before");
-  // Print price
+  Serial.println(price);
 
-  if (price < oldprice) {
-    Serial.println(":-( <( OH NO!)");
-  } else if  (price > oldprice) {
-    Serial.println(":-) <( EH! EH!) ");
-  } else {
-    Serial.println(":-o <(nothink to say) ");
-  }
-  oldprice = price;
-  delay(10000);
+  // Wait 5 seconds
+  delay(5000);
+  /*
+
+    tempete();
+    delay(1);
+    tempeteWithUltraS();
+    delay(1);
+    etatNuageUpDate();
+    delay(1);
+    ledRVB();
+    delay(1);
+    moveMode(0);
+    delay(1);
+  */
 }
+/*
 
-void moveMode(byte whatServoInfo) {
+  void moveMode(byte whatServoInfo) {
 
   // on change de nbreDegreVariation
   if (pos[whatServoInfo] <= posLimitesTemp[0] ) {
@@ -213,9 +211,9 @@ void moveMode(byte whatServoInfo) {
   }
   safeServoLimites(whatServoInfo);
   servo[whatServoInfo].write(pos[whatServoInfo]);
-}
+  }
 
-void safeServoLimites(byte whatServoInfo) {
+  void safeServoLimites(byte whatServoInfo) {
 
   // on reste dans les limite d'angle
   if (pos[whatServoInfo] > maxPosLimite) {
@@ -225,9 +223,9 @@ void safeServoLimites(byte whatServoInfo) {
     pos[whatServoInfo] = miniPosLimite;
   }
 
-}
+  }
 
-void ledRVB() {
+  void ledRVB() {
 
   switch (etatNuage) {
     case 1:
@@ -253,15 +251,15 @@ void ledRVB() {
       }
       break;
   }
-}
+  }
 
-void lightVariationMode() {
+  void lightVariationMode() {
   lightVariation = random(
                      (LEDPowerLimitesTemp[0] + random((0 - colorVariation / 2), colorVariation)),  //minimun dans la variation de cooleur,
                      (LEDPowerLimitesTemp[1] + random((0 - colorVariation / 2), colorVariation))); //maxi
-}
+  }
 
-void tempete() {
+  void tempete() {
 
   switch (etatNuage) {
     case 1:
@@ -288,14 +286,14 @@ void tempete() {
       }
   }
 
-}
+  }
 
 
-void tempeteWithUltraS() {
+  void tempeteWithUltraS() {
 
 
     distance = distanceSensor.measureDistanceCm();
-  
+
 
   if (distance < 15) {
     etatNuage = 2;
@@ -305,8 +303,8 @@ void tempeteWithUltraS() {
     etatNuage = 0;
   }
 
-}
-void etatNuageUpDate() {
+  }
+  void etatNuageUpDate() {
   switch (etatNuage) {
     case 1:
       LEDPowerLimitesTemp[0] = 100;
@@ -335,4 +333,5 @@ void etatNuageUpDate() {
       break;
   }
 
-}
+  }
+*/
