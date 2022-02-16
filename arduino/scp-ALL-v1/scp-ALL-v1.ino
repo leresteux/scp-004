@@ -19,6 +19,8 @@ const char* password = "lemot2passeestlemot2passe";
 // API server
 const char* host = "api.coindesk.com";
 
+int price, oldPrice;
+
 /////////const & var for UltraS.
 const byte triggerPin = 13; //<to change
 const byte echoPin = 12; //<to change
@@ -45,7 +47,7 @@ int LEDPowerLimitesTemp[2];
 int colorVariation;
 int lightVariation;
 
-const byte RGBpins[3] = {12, 14, 15}; 
+const byte RGBpins[3] = {12, 14, 15};
 const byte maxPowerLimite = 220;
 const byte miniPowerLimite = 20;
 
@@ -55,7 +57,7 @@ byte etatNuage = 0;
 const byte Rpins = 11;
 //FIN
 Servo servo[nbreServo];
-Chrono chronoTempete;
+Chrono chronoTempete, chronoTicker;;
 
 void setup() {
 
@@ -105,95 +107,106 @@ void setup() {
 
 }
 void loop() {
+  cryptoTicker();
 
-  // Connect to API
-  Serial.print("connecting to ");
-  Serial.println(host);
 
-  // Use WiFiClient class to create TCP connections
-  WiFiClient client;
-  const int httpPort = 80;
-  if (!client.connect(host, httpPort)) {
-    Serial.println("connection failed");
-    return;
-  }
+  tempete();
+  delay(1);
+  tempeteWithUltraS();
+  delay(1);
+  etatNuageUpDate();
+  delay(1);
+  ledRVB();
+  delay(1);
+  moveMode(0);
+  delay(1);
 
-  // We now create a URI for the request
-  String url = "/v1/bpi/currentprice.json";
+}
 
-  Serial.print("Requesting URL: ");
-  Serial.println(url);
+void cryptoTicker() {
 
-  // This will send the request to the server
-  client.print(String("GET ") + url + " HTTP/1.1\r\n" +
-               "Host: " + host + "\r\n" +
-               "Connection: close\r\n\r\n");
-  delay(100);
+  if (chronoTicker.hasPassed(5000)) {
+    chronoTicker.restart();
+    // Connect to API
+    Serial.print("connecting to ");
+    Serial.println(host);
 
-  // Read all the lines of the reply from server and print them to Serial
-  String answer;
-  while (client.available()) {
-    String line = client.readStringUntil('\r');
-    answer += line;
-  }
+    // Use WiFiClient class to create TCP connections
+    WiFiClient client;
+    const int httpPort = 80;
+    if (!client.connect(host, httpPort)) {
+      Serial.println("connection failed");
+      return;
+    }
 
-  client.stop();
-  Serial.println();
-  Serial.println("closing connection");
+    // We now create a URI for the request
+    String url = "/v1/bpi/currentprice.json";
 
-  // Process answer
-  Serial.println();
-  Serial.println("Answer: ");
-  Serial.println(answer);
+    Serial.print("Requesting URL: ");
+    Serial.println(url);
 
-  // Convert to JSON
-  String jsonAnswer;
-  int jsonIndex;
+    // This will send the request to the server
+    client.print(String("GET ") + url + " HTTP/1.1\r\n" +
+                 "Host: " + host + "\r\n" +
+                 "Connection: close\r\n\r\n");
+    delay(100);
 
-  for (int i = 0; i < answer.length(); i++) {
-    if (answer[i] == '{') {
-      jsonIndex = i;
-      break;
+    // Read all the lines of the reply from server and print them to Serial
+    String answer;
+    while (client.available()) {
+      String line = client.readStringUntil('\r');
+      answer += line;
+    }
+
+    client.stop();
+    Serial.println();
+    Serial.println("closing connection");
+
+    // Process answer
+    Serial.println();
+    Serial.println("Answer: ");
+    Serial.println(answer);
+
+    // Convert to JSON
+    String jsonAnswer;
+    int jsonIndex;
+
+    for (int i = 0; i < answer.length(); i++) {
+      if (answer[i] == '{') {
+        jsonIndex = i;
+        break;
+      }
+    }
+
+    // Get JSON data
+    jsonAnswer = answer.substring(jsonIndex);
+    Serial.println();
+    Serial.println("JSON answer: ");
+    Serial.println(jsonAnswer);
+    jsonAnswer.trim();
+
+    // Get rate as float
+    int rateIndex = jsonAnswer.indexOf("rate_float");
+    String priceString = jsonAnswer.substring(rateIndex + 12, rateIndex + 18);
+    priceString.trim();
+    price = priceString.toFloat();
+
+    // Print price
+    Serial.println();
+    Serial.println("Bitcoin price: ");
+    Serial.println(price);
+    Serial.print(" vs oldprice :  ");
+    Serial.println(oldPrice);
+    if (price > oldPrice) {
+      etatNuage = 1;
+    } else if (price < oldPrice) {
+      etatNuage = 2;
+    } else {
+      etatNuage = 0;
     }
   }
-
-  // Get JSON data
-  jsonAnswer = answer.substring(jsonIndex);
-  Serial.println();
-  Serial.println("JSON answer: ");
-  Serial.println(jsonAnswer);
-  jsonAnswer.trim();
-
-  // Get rate as float
-  int rateIndex = jsonAnswer.indexOf("rate_float");
-  String priceString = jsonAnswer.substring(rateIndex + 12, rateIndex + 18);
-  priceString.trim();
-  float price = priceString.toFloat();
-
-  // Print price
-  Serial.println();
-  Serial.println("Bitcoin price: ");
-  Serial.println(price);
-
-  // Wait 5 seconds
-  delay(5000);
-  /*
-
-    tempete();
-    delay(1);
-    tempeteWithUltraS();
-    delay(1);
-    etatNuageUpDate();
-    delay(1);
-    ledRVB();
-    delay(1);
-    moveMode(0);
-    delay(1);
-  */
 }
-/*
-
-  void moveMode(byte whatServoInfo) {
+void moveMode(byte whatServoInfo) {
 
   // on change de nbreDegreVariation
   if (pos[whatServoInfo] <= posLimitesTemp[0] ) {
@@ -211,9 +224,9 @@ void loop() {
   }
   safeServoLimites(whatServoInfo);
   servo[whatServoInfo].write(pos[whatServoInfo]);
-  }
+}
 
-  void safeServoLimites(byte whatServoInfo) {
+void safeServoLimites(byte whatServoInfo) {
 
   // on reste dans les limite d'angle
   if (pos[whatServoInfo] > maxPosLimite) {
@@ -223,9 +236,9 @@ void loop() {
     pos[whatServoInfo] = miniPosLimite;
   }
 
-  }
+}
 
-  void ledRVB() {
+void ledRVB() {
 
   switch (etatNuage) {
     case 1:
@@ -251,15 +264,15 @@ void loop() {
       }
       break;
   }
-  }
+}
 
-  void lightVariationMode() {
+void lightVariationMode() {
   lightVariation = random(
                      (LEDPowerLimitesTemp[0] + random((0 - colorVariation / 2), colorVariation)),  //minimun dans la variation de cooleur,
                      (LEDPowerLimitesTemp[1] + random((0 - colorVariation / 2), colorVariation))); //maxi
-  }
+}
 
-  void tempete() {
+void tempete() {
 
   switch (etatNuage) {
     case 1:
@@ -286,13 +299,13 @@ void loop() {
       }
   }
 
-  }
+}
 
 
-  void tempeteWithUltraS() {
+void tempeteWithUltraS() {
 
 
-    distance = distanceSensor.measureDistanceCm();
+  distance = distanceSensor.measureDistanceCm();
 
 
   if (distance < 15) {
@@ -303,8 +316,8 @@ void loop() {
     etatNuage = 0;
   }
 
-  }
-  void etatNuageUpDate() {
+}
+void etatNuageUpDate() {
   switch (etatNuage) {
     case 1:
       LEDPowerLimitesTemp[0] = 100;
@@ -332,6 +345,4 @@ void loop() {
       colorVariation = 0;
       break;
   }
-
-  }
-*/
+}
