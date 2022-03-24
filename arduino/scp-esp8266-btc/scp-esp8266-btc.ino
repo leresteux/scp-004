@@ -4,7 +4,6 @@
 #include <Wire.h>
 
 
-
 // WiFi settings
 const char* ssid     = "RED";
 const char* password = "lemot2passeestlemot2passe";
@@ -24,16 +23,16 @@ void setup() {
   Serial.println();
   Serial.print("Connecting to ");
   Serial.println(ssid);
-  
+
   WiFi.begin(ssid, password);
-  
+
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
   }
 
   Serial.println("");
-  Serial.println("WiFi connected");  
+  Serial.println("WiFi connected");
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP());
 }
@@ -43,7 +42,7 @@ void loop() {
   // Connect to API
   Serial.print("connecting to ");
   Serial.println(host);
-  
+
   // Use WiFiClient class to create TCP connections
   WiFiClient client;
   const int httpPort = 80;
@@ -51,22 +50,22 @@ void loop() {
     Serial.println("connection failed");
     return;
   }
-  
+
   // We now create a URI for the request
   String url = "/v1/bpi/currentprice.json";
-  
+
   Serial.print("Requesting URL: ");
   Serial.println(url);
-  
+
   // This will send the request to the server
   client.print(String("GET ") + url + " HTTP/1.1\r\n" +
-               "Host: " + host + "\r\n" + 
+               "Host: " + host + "\r\n" +
                "Connection: close\r\n\r\n");
   delay(100);
-  
+
   // Read all the lines of the reply from server and print them to Serial
   String answer;
-  while(client.available()){
+  while (client.available()) {
     String line = client.readStringUntil('\r');
     answer += line;
   }
